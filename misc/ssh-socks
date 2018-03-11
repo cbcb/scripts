@@ -1,0 +1,38 @@
+#!/bin/bash
+set -u
+script_dir="$(dirname $0)"
+source "${script_dir}/fun.sh"
+
+HOST="example.org"
+PORT=7070
+
+# Test if $PORT is in use:
+(2>&1 lsof -i:$PORT)> /dev/null
+
+case "$?" in
+    0)
+        e_info "ssh SOCKS proxy already running (or port $PORT otherwise in use)"
+        e_error "Not starting ssh SOCKS proxy."
+        exit 1
+    ;;
+    1)
+        true
+    ;;
+    127)
+        e_info "${bold}lsof${reset} not found, can't see if port $PORT is already taken."
+    ;;
+    *)
+        e_error "${bold}lsof${reset} exited unexpectedly with error code ${bold}$?${reset}"
+    ;;
+esac
+
+e_info "${bold}ssh${reset} -o ExitOnForwardFailure=yes -fND $PORT $HOST"
+ssh -o ExitOnForwardFailure=yes -fND $PORT $HOST
+exitStatus="$?"
+if [[ $exitStatus -eq 0 ]]
+ then e_ok "Started ssh SOCKS proxy."
+ else e_error "Couldn't start ssh SOCKS proxy."
+fi
+
+exit $exitStatus
+
