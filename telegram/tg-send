@@ -1,0 +1,51 @@
+#!/bin/bash
+#VERSION 0.0.2
+
+declare -r TOKEN=""
+declare -r CHAT=""
+
+print_help() {
+    script=$(basename "$0")
+    echo "\
+Usage:
+${script} -m \"Message\" sends a message silently
+
+Options:
+    -h              print this help
+    -u              sends an urgent message (i.e. not silently)
+    -s \"Subject\"    sends a message with a subject line in bold
+    -l              append name of the machine to message"
+}
+
+declare NOT_URGENT="True"
+
+while getopts "hum:ls:" options; do
+  case $options in
+    h) print_help "$0"
+       exit 0
+       ;;
+    l) APPEND="$APPEND
+        – (_${HOSTNAME}_)"
+        ;;
+    m ) MSG=${OPTARG}
+        ;;
+    s ) PREPEND="*${OPTARG}*
+${PREPEND}"
+        ;;
+    u ) NOT_URGENT="False"
+        ;;
+  esac
+done
+
+if [ "x" == "x${MSG}" ]
+then
+    print_help "$0"
+    exit 1
+fi
+
+curl --silent\
+    --data "parse_mode=Markdown"\
+    --data-urlencode "text=${PREPEND}${MSG}${APPEND}"\
+    --data "chat_id=${CHAT}"\
+    --data "disable_notification=${NOT_URGENT}"\
+    https://api.telegram.org/bot${TOKEN}/sendMessage >/dev/null
