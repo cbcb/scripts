@@ -1,0 +1,20 @@
+#!/bin/bash
+set -u
+
+size=$(du -sk "$1"|cut -f 1)
+
+find "$1" -iname "*flac" -exec flac -V -f --best -o {} {} \;
+
+new_size=$(du -sk "$1"|cut -f 1)
+
+echo "Old size: " $((size / 1024)) "MB"
+echo "New size: " $((new_size / 1024)) "MB"
+saved=$((size - new_size))
+if [ "$saved" -gt 1024 ];
+    then
+        kb=$((saved / 1024))
+        echo "Saved: $saved KB ($kb MB)"
+    else
+        echo "Saved: $saved KB"
+fi
+
