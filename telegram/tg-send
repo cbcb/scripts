@@ -1,5 +1,7 @@
 #!/bin/bash
-#VERSION 0.0.2
+#VERSION 0.0.3
+
+# New in 0.0.3: escape markdown characters
 
 declare -r TOKEN=""
 declare -r CHAT=""
@@ -42,6 +44,11 @@ then
     print_help "$0"
     exit 1
 fi
+
+MSG=${MSG//_/\\_}
+MSG=${MSG//\[/\\[}
+MSG=${MSG//\*/\\*}
+MSG=${MSG//\`/\\\`}
 
 curl --silent\
     --data "parse_mode=Markdown"\
